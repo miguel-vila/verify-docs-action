@@ -1,0 +1,77 @@
+name: Release Action
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build bundle
+        run: npm run build
+
+      - name: Extract version info
+        id: version
+        run: |
+          TAG="${{ github.ref_name }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          # Extract major version (v1.2.3 -> v1)
+          MAJOR=$(echo "$TAG" | sed -E 's/^(v[0-9]+).*/\1/')
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare release branch content
+        run: |
+          # Create a temporary directory with just the action files
+          mkdir -p /tmp/action-release
+          cp action.yml /tmp/action-release/
+          cp -r dist /tmp/action-release/
+          cp README.md /tmp/action-release/ 2>/dev/null || echo "No README.md"
+          cp LICENSE /tmp/action-release/ 2>/dev/null || echo "No LICENSE"
+
+      - name: Push to release branches
+        run: |
+          cd /tmp/action-release
+
+          git init
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+          git commit -m "Release ${{ steps.version.outputs.tag }}"
+
+          # Push to exact version branch (releases/v1.2.3)
+          git push --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/releases/${{ steps.version.outputs.tag }}
+
+          # Push to major version branch (releases/v1) for semver compatibility
+          git push --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/releases/${{ steps.version.outputs.major }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
+          body: |
+            ## Usage
+
+            ```yaml
+            - uses: ${{ github.repository }}@releases/${{ steps.version.outputs.major }}
+              with:
+                anthropic-api-key: ${{ '{{' }} secrets.ANTHROPIC_API_KEY {{ '}}' }}
+            ```
+
+            Or pin to exact version:
+            ```yaml
+            - uses: ${{ github.repository }}@releases/${{ steps.version.outputs.tag }}
+            ```

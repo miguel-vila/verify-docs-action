@@ -1,0 +1,47 @@
+name: 'Verify Docs in Sync with Code'
+description: 'Verify documentation is up-to-date with the codebase using Claude AI. Optionally creates PRs to fix outdated docs.'
+author: 'Miguel Vila'
+
+branding:
+  icon: 'file-text'
+  color: 'blue'
+
+inputs:
+  include:
+    description: 'Space-separated list of additional files to check (beyond CLAUDE.md and its links)'
+    required: false
+    default: ''
+  verify-only:
+    description: 'Only verify docs, do not create fix PRs'
+    required: false
+    default: 'false'
+  verbose:
+    description: 'Enable verbose logging (tool calls, token usage)'
+    required: false
+    default: 'false'
+  model:
+    description: 'Anthropic model to use for verification'
+    required: false
+    default: 'claude-haiku-4-5-20251001'
+  anthropic-api-key:
+    description: 'Anthropic API key (defaults to ANTHROPIC_API_KEY env var)'
+    required: false
+  github-token:
+    description: 'GitHub token for creating PRs (defaults to GITHUB_TOKEN env var)'
+    required: false
+
+outputs:
+  files-checked:
+    description: 'Number of documentation files checked'
+  files-outdated:
+    description: 'Number of files found to be outdated'
+  prs-created:
+    description: 'Number of PRs created to fix outdated docs'
+  pr-urls:
+    description: 'Newline-separated list of PR URLs created'
+  results-dir:
+    description: 'Path to directory containing detailed verification results'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
