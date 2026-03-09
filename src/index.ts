@@ -37,6 +37,12 @@ interface VerifyResult {
 const UP_TO_DATE = "UP_TO_DATE";
 
 async function main(): Promise<void> {
+  // Mask the API key in logs (works in GitHub Actions)
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (apiKey && isGitHubAction()) {
+    core.setSecret(apiKey);
+  }
+
   const cli = parseCli();
   if (cli.verbose) enableVerbose();
 
