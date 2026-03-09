@@ -24,8 +24,8 @@ inputs:
     required: false
     default: 'claude-haiku-4-5-20251001'
   anthropic-api-key:
-    description: 'Anthropic API key (defaults to ANTHROPIC_API_KEY env var)'
-    required: false
+    description: 'Anthropic API key'
+    required: true
   github-token:
     description: 'GitHub token for creating PRs (defaults to GITHUB_TOKEN env var)'
     required: false
@@ -63,8 +63,8 @@ runs:
       id: verify
       shell: bash
       env:
-        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key || '' }}
-        GITHUB_TOKEN: ${{ inputs.github-token || '' }}
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
         INPUT_INCLUDE: ${{ inputs.include }}
         INPUT_VERIFY-ONLY: ${{ inputs.verify-only }}
         INPUT_VERBOSE: ${{ inputs.verbose }}
