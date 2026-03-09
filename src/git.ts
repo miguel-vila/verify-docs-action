@@ -1,7 +1,13 @@
 import { execFileSync } from "node:child_process";
+import { debug } from "./log.js";
 
 function git(repoDir: string, ...args: string[]): string {
-  return execFileSync("git", args, { cwd: repoDir, encoding: "utf-8" }).trim();
+  debug(`git ${args.join(" ")}`);
+  const result = execFileSync("git", args, { cwd: repoDir, encoding: "utf-8" }).trim();
+  if (result) {
+    debug(`git output: ${result.slice(0, 200)}${result.length > 200 ? "..." : ""}`);
+  }
+  return result;
 }
 
 export function branchExists(repoDir: string, branchName: string): boolean {
@@ -30,11 +36,14 @@ export function pushBranch(repoDir: string, branchName: string): void {
 }
 
 export function createPR(repoDir: string, branch: string, title: string, body: string): string {
-  return execFileSync(
+  debug(`gh pr create --head ${branch} --title "${title}"`);
+  const result = execFileSync(
     "gh",
     ["pr", "create", "--head", branch, "--title", title, "--body", body],
     { cwd: repoDir, encoding: "utf-8" },
   ).trim();
+  debug(`PR created: ${result}`);
+  return result;
 }
 
 export function restoreMainBranch(repoDir: string): void {

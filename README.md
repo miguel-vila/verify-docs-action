@@ -44,6 +44,7 @@ jobs:
 | `include` | Space-separated list of additional files to check | No | `''` |
 | `verify-only` | Only verify docs, don't create fix PRs | No | `'false'` |
 | `verbose` | Enable verbose logging | No | `'false'` |
+| `debug` | Enable debug logging (implies verbose) | No | `'false'` |
 | `model` | Anthropic model to use | No | `'claude-haiku-4-5-20251001'` |
 | `anthropic-api-key` | Anthropic API key | No | Uses `ANTHROPIC_API_KEY` env var |
 | `github-token` | GitHub token for creating PRs | No | Uses `GITHUB_TOKEN` env var |
@@ -71,6 +72,7 @@ npx verify-docs-action [options] [repo_dir]
 #   --verify-only      Only verify, don't fix
 #   --include <file>   Additional files to check (repeatable)
 #   -v, --verbose      Verbose logging
+#   -d, --debug        Debug logging (implies verbose)
 #   -m, --model <id>   Anthropic model to use
 #   -h, --help         Show help
 ```

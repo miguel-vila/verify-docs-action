@@ -19,6 +19,10 @@ inputs:
     description: 'Enable verbose logging (tool calls, token usage)'
     required: false
     default: 'false'
+  debug:
+    description: 'Enable debug logging (implies verbose)'
+    required: false
+    default: 'false'
   model:
     description: 'Anthropic model to use for verification'
     required: false
@@ -68,5 +72,6 @@ runs:
         INPUT_INCLUDE: ${{ inputs.include }}
         INPUT_VERIFY-ONLY: ${{ inputs.verify-only }}
         INPUT_VERBOSE: ${{ inputs.verbose }}
+        INPUT_DEBUG: ${{ inputs.debug }}
         INPUT_MODEL: ${{ inputs.model }}
       run: node ${{ github.action_path }}/dist/index.js

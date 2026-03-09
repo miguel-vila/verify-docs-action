@@ -1,6 +1,6 @@
 import { query, type SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { relative, resolve } from "node:path";
-import { verbose } from "./log.js";
+import { verbose, debug } from "./log.js";
 
 // Allow running inside a Claude Code session by stripping the nesting guard.
 const cleanEnv: Record<string, string> = Object.fromEntries(
@@ -44,6 +44,10 @@ export async function verifyFile(
   const relPath = relative(repoDir, filePath);
   const label = `verify ${relPath}`;
 
+  debug(`[${label}] Starting verification`);
+  debug(`[${label}] Model: ${model}`);
+  debug(`[${label}] Repo dir: ${repoDir}`);
+
   const messages: SDKMessage[] = [];
   for await (const msg of query({
     prompt: [
@@ -73,17 +77,23 @@ export async function verifyFile(
     },
   })) {
     messages.push(msg);
+    if (msg.type === "assistant") {
+      debug(`[${label}] Assistant turn received`);
+    }
   }
 
+  debug(`[${label}] Total messages: ${messages.length}`);
   logMessages(label, messages);
 
   const result = messages.find(
     (m): m is Extract<SDKMessage, { type: "result" }> => m.type === "result",
   );
   if (result && result.subtype === "success") {
+    debug(`[${label}] Verification succeeded`);
     return result.result;
   }
   const errorResult = result as { subtype: string; errors?: string[] } | undefined;
+  debug(`[${label}] Verification failed: ${errorResult?.subtype}`);
   throw new Error(
     `Agent failed during [${label}]: ${errorResult?.subtype ?? "no result"} — ${errorResult?.errors?.join("; ") ?? "unknown error"}`,
   );
@@ -98,6 +108,11 @@ export async function fixFile(
   const relPath = relative(repoDir, filePath);
   const label = `fix ${relPath}`;
   const resolvedPath = resolve(filePath);
+
+  debug(`[${label}] Starting fix`);
+  debug(`[${label}] Model: ${model}`);
+  debug(`[${label}] Target file: ${resolvedPath}`);
+  debug(`[${label}] Mismatches to fix: ${mismatches.slice(0, 100)}...`);
 
   const messages: SDKMessage[] = [];
   for await (const msg of query({
@@ -150,17 +165,23 @@ export async function fixFile(
     },
   })) {
     messages.push(msg);
+    if (msg.type === "assistant") {
+      debug(`[${label}] Assistant turn received`);
+    }
   }
 
+  debug(`[${label}] Total messages: ${messages.length}`);
   logMessages(label, messages);
 
   const result = messages.find(
     (m): m is Extract<SDKMessage, { type: "result" }> => m.type === "result",
   );
   if (result && result.subtype === "success") {
+    debug(`[${label}] Fix succeeded`);
     return result.result;
   }
   const errorResult = result as { subtype: string; errors?: string[] } | undefined;
+  debug(`[${label}] Fix failed: ${errorResult?.subtype}`);
   throw new Error(
     `Agent failed during [${label}]: ${errorResult?.subtype ?? "no result"} — ${errorResult?.errors?.join("; ") ?? "unknown error"}`,
   );

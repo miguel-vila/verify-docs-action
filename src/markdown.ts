@@ -3,10 +3,12 @@ import type Token from "markdown-it/lib/token.mjs";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { dirname, join, resolve, relative } from "node:path";
+import { debug } from "./log.js";
 
 const md = new MarkdownIt();
 
 function extractLinks(source: string, filePath: string, repoDir: string): string[] {
+  debug(`Extracting links from: ${filePath}`);
   const tokens = md.parse(source, {});
   const links: string[] = [];
 
@@ -28,28 +30,41 @@ function extractLinks(source: string, filePath: string, repoDir: string): string
   }
 
   walk(tokens);
+  debug(`Found ${links.length} links in ${filePath}: ${links.join(", ") || "(none)"}`);
   return links;
 }
 
 export async function collectFiles(repoDir: string, seeds: string[]): Promise<string[]> {
+  debug(`collectFiles starting with seeds: ${seeds.join(", ")}`);
   const visited = new Set<string>();
   const queue = [...seeds];
   const files: string[] = [];
 
   while (queue.length > 0) {
     const current = queue.shift()!;
-    if (visited.has(current)) continue;
+    if (visited.has(current)) {
+      debug(`Skipping already visited: ${current}`);
+      continue;
+    }
     visited.add(current);
 
     const fullPath = join(repoDir, current);
-    if (!existsSync(fullPath)) continue;
+    if (!existsSync(fullPath)) {
+      debug(`File does not exist: ${fullPath}`);
+      continue;
+    }
+    debug(`Processing file: ${current}`);
     files.push(current);
 
     const source = await readFile(fullPath, "utf-8");
     for (const link of extractLinks(source, current, repoDir)) {
-      if (!visited.has(link)) queue.push(link);
+      if (!visited.has(link)) {
+        debug(`Queuing linked file: ${link}`);
+        queue.push(link);
+      }
     }
   }
 
+  debug(`collectFiles complete, found ${files.length} files`);
   return files;
 }

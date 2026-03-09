@@ -16,7 +16,7 @@ import { existsSync, writeFileSync, mkdtempSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { parseCli, isGitHubAction } from "./cli.js";
-import { enableVerbose } from "./log.js";
+import { enableVerbose, enableDebug, debug } from "./log.js";
 import { collectFiles } from "./markdown.js";
 import { verifyFile, fixFile } from "./agent.js";
 import {
@@ -44,7 +44,13 @@ async function main(): Promise<void> {
   }
 
   const cli = parseCli();
-  if (cli.verbose) enableVerbose();
+  if (cli.debug) {
+    enableDebug();
+  } else if (cli.verbose) {
+    enableVerbose();
+  }
+
+  debug("CLI args:", cli);
 
   const repoDir = resolve(cli.repoDir);
   const claudeMd = join(repoDir, "CLAUDE.md");
@@ -59,7 +65,9 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  debug("Collecting files from:", repoDir);
   const files = await collectFiles(repoDir, ["CLAUDE.md", ...cli.include]);
+  debug("Collected files:", files);
 
   const resultsDir = mkdtempSync(join(tmpdir(), "verify-docs-action-"));
   console.log(`Results will be saved to: ${resultsDir}`);

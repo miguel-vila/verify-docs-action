@@ -5,6 +5,7 @@ export interface CliArgs {
   repoDir: string;
   verifyOnly: boolean;
   verbose: boolean;
+  debug: boolean;
   model: string;
   include: string[];
 }
@@ -15,6 +16,7 @@ Options:
   --verify-only      Only verify docs, skip fix & PR phase
   --include <file>   Additional files to verify (can be repeated)
   -v, --verbose      Log turn numbers, tool calls, and token usage to stderr
+  -d, --debug        Enable debug logging (implies --verbose)
   -m, --model <id>   Anthropic model to use (default: claude-haiku-4-5-20251001)
   -h, --help         Show this help message
 
@@ -28,6 +30,7 @@ GitHub Action Inputs:
   include            Space-separated list of files to check
   verify-only        Only verify, do not create fix PRs (true/false)
   verbose            Enable verbose logging (true/false)
+  debug              Enable debug logging (true/false)
   model              Anthropic model to use`;
 
 function isGitHubAction(): boolean {
@@ -38,6 +41,7 @@ function parseGitHubActionInputs(): CliArgs {
   const include = core.getInput("include");
   const verifyOnly = core.getInput("verify-only") === "true";
   const verbose = core.getInput("verbose") === "true";
+  const debug = core.getInput("debug") === "true";
   const model = core.getInput("model") || "claude-haiku-4-5-20251001";
 
   // In GitHub Actions, GITHUB_WORKSPACE is the repo checkout
@@ -47,6 +51,7 @@ function parseGitHubActionInputs(): CliArgs {
     repoDir,
     verifyOnly,
     verbose,
+    debug,
     model,
     include: include ? include.split(/\s+/).filter(Boolean) : [],
   };
@@ -59,6 +64,7 @@ function parseCliArgs(): CliArgs {
       "verify-only": { type: "boolean", default: false },
       include: { type: "string", multiple: true, default: [] },
       verbose: { type: "boolean", short: "v", default: false },
+      debug: { type: "boolean", short: "d", default: false },
       model: { type: "string", short: "m", default: "claude-haiku-4-5-20251001" },
       help: { type: "boolean", short: "h", default: false },
     },
@@ -73,6 +79,7 @@ function parseCliArgs(): CliArgs {
     repoDir: positionals[0] ?? process.cwd(),
     verifyOnly: values["verify-only"] ?? false,
     verbose: values.verbose ?? false,
+    debug: values.debug ?? false,
     model: values.model ?? "claude-haiku-4-5-20251001",
     include: (values.include ?? []) as string[],
   };
