@@ -1,0 +1,77 @@
+name: 'Verify Docs in Sync with Code'
+description: 'Verify documentation is up-to-date with the codebase using Claude AI. Optionally creates PRs to fix outdated docs.'
+author: 'Miguel Vila'
+
+branding:
+  icon: 'file-text'
+  color: 'blue'
+
+inputs:
+  include:
+    description: 'Space-separated list of additional files to check (beyond CLAUDE.md and its links)'
+    required: false
+    default: ''
+  verify-only:
+    description: 'Only verify docs, do not create fix PRs'
+    required: false
+    default: 'false'
+  verbose:
+    description: 'Enable verbose logging (tool calls, token usage)'
+    required: false
+    default: 'false'
+  debug:
+    description: 'Enable debug logging (implies verbose)'
+    required: false
+    default: 'false'
+  model:
+    description: 'Anthropic model to use for verification'
+    required: false
+    default: 'claude-haiku-4-5-20251001'
+  anthropic-api-key:
+    description: 'Anthropic API key'
+    required: true
+  github-token:
+    description: 'GitHub token for creating PRs (defaults to GITHUB_TOKEN env var)'
+    required: false
+
+outputs:
+  files-checked:
+    description: 'Number of documentation files checked'
+    value: ${{ steps.verify.outputs.files-checked }}
+  files-outdated:
+    description: 'Number of files found to be outdated'
+    value: ${{ steps.verify.outputs.files-outdated }}
+  prs-created:
+    description: 'Number of PRs created to fix outdated docs'
+    value: ${{ steps.verify.outputs.prs-created }}
+  pr-urls:
+    description: 'Newline-separated list of PR URLs created'
+    value: ${{ steps.verify.outputs.pr-urls }}
+  results-dir:
+    description: 'Path to directory containing detailed verification results'
+    value: ${{ steps.verify.outputs.results-dir }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Claude Code CLI
+      shell: bash
+      run: npm install -g @anthropic-ai/claude-code
+
+    - name: Run verify-docs-action
+      id: verify
+      shell: bash
+      env:
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        INPUT_INCLUDE: ${{ inputs.include }}
+        INPUT_VERIFY-ONLY: ${{ inputs.verify-only }}
+        INPUT_VERBOSE: ${{ inputs.verbose }}
+        INPUT_DEBUG: ${{ inputs.debug }}
+        INPUT_MODEL: ${{ inputs.model }}
+      run: node ${{ github.action_path }}/dist/index.js
