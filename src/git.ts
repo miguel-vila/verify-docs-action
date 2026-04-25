@@ -33,7 +33,7 @@ export function commitAllChanges(repoDir: string, message: string): void {
     "-c",
     "user.name=github-actions[bot]",
     "-c",
-    "user.email=41898282+github-actions[bot]@users.noreply.github.com",
+    "user.email=github-actions[bot]@users.noreply.github.com",
     "commit",
     "-m",
     message,
