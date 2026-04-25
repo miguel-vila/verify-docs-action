@@ -68,7 +68,7 @@ runs:
       shell: bash
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
-        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_TOKEN: ${{ inputs.github-token || github.token }}
         INPUT_INCLUDE: ${{ inputs.include }}
         INPUT_VERIFY-ONLY: ${{ inputs.verify-only }}
         INPUT_VERBOSE: ${{ inputs.verbose }}
