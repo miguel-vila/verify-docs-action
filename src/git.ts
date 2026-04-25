@@ -28,7 +28,16 @@ export function createBranch(repoDir: string, branchName: string): void {
 
 export function commitAllChanges(repoDir: string, message: string): void {
   git(repoDir, "add", "-A");
-  git(repoDir, "commit", "-m", message);
+  git(
+    repoDir,
+    "-c",
+    "user.name=github-actions[bot]",
+    "-c",
+    "user.email=41898282+github-actions[bot]@users.noreply.github.com",
+    "commit",
+    "-m",
+    message,
+  );
 }
 
 export function pushBranch(repoDir: string, branchName: string): void {
