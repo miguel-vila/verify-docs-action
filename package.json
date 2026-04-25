@@ -5,7 +5,8 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "ncc build src/index.ts -o dist --minify --source-map --license licenses.txt",
+    "build": "ncc build src/index.ts -o dist --minify --source-map --license licenses.txt && npm run copy-sdk-runtime",
+    "copy-sdk-runtime": "cp node_modules/@anthropic-ai/claude-agent-sdk/cli.js dist/ && cp node_modules/@anthropic-ai/claude-agent-sdk/*.wasm dist/ && cp -R node_modules/@anthropic-ai/claude-agent-sdk/vendor dist/",
     "start": "tsx src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -22,7 +23,7 @@
   "dependencies": {
     "@actions/core": "^1.10.1",
     "@actions/github": "^6.0.0",
-    "@anthropic-ai/claude-agent-sdk": "latest",
+    "@anthropic-ai/claude-agent-sdk": "0.2.66",
     "markdown-it": "^14.0.0"
   },
   "devDependencies": {
